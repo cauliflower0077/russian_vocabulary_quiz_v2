@@ -1,14 +1,12 @@
 // lib/screens/quiz_screen.dart
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../models/word.dart';
 import '../services/storage_service.dart';
 import '../services/tts_service.dart';
+import '../app_navigation.dart';
 import '../widgets/answer_button.dart';
-import 'result_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   final List<Word> words;
@@ -29,8 +27,6 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  final Random random = Random();
-
   late List<Word> quizWords;
 
   int currentIndex = 0;
@@ -57,7 +53,9 @@ class _QuizScreenState extends State<QuizScreen> {
 
     final shuffled = [...widget.words]..shuffle();
 
-    quizWords = shuffled.take(widget.questionCount).toList();
+    final count =
+        widget.questionCount.clamp(1, widget.words.length);
+    quizWords = shuffled.take(count).toList();
 
     loadQuestion();
   }
@@ -110,16 +108,12 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<void> nextQuestion() async {
 
     if (currentIndex >= quizWords.length - 1) {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-            builder: (_) => ResultScreen(
-                correctCount: correctCount,
-                totalQuestions: quizWords.length,
-                wrongWords: wrongWords,
-                guessedWords: guessedWords,
-            ),
-            ),
+        AppNavigation.replaceWithResult(
+          context,
+          correctCount: correctCount,
+          totalQuestions: quizWords.length,
+          wrongWords: wrongWords,
+          guessedWords: guessedWords,
         );
 
         return;

@@ -1,13 +1,7 @@
-
 import 'package:flutter/material.dart';
 
+import '../app_navigation.dart';
 import '../services/word_service.dart';
-
-import 'guessed_screen.dart';
-import 'missed_screen.dart';
-import 'quiz_screen.dart';
-import 'study_screen.dart';
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -44,43 +38,24 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    Navigator.push(
+    await AppNavigation.pushQuiz(
       context,
-      MaterialPageRoute(
-        builder: (_) => QuizScreen(
-          words: words,
-          questionCount: selectedQuestionCount,
-          russianToEnglish: russianToEnglish,
-        ),
-      ),
+      words: words,
+      questionCount: selectedQuestionCount,
+      russianToEnglish: russianToEnglish,
     );
   }
 
   void openStudyScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const StudyScreen(),
-      ),
-    );
+    AppNavigation.pushStudy(context);
   }
 
   void openMissedScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const MissedScreen(),
-      ),
-    );
+    AppNavigation.pushMissed(context);
   }
 
   void openGuessedScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const GuessedScreen(),
-      ),
-    );
+    AppNavigation.pushGuessed(context);
   }
 
   @override

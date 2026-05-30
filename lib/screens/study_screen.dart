@@ -43,6 +43,8 @@ class _StudyScreenState extends State<StudyScreen> {
   Future<void> loadWords() async {
     final words = await WordService.loadWords();
 
+    if (!mounted) return;
+
     setState(() {
       allWords = words;
       filteredWords = [...words];
@@ -50,6 +52,12 @@ class _StudyScreenState extends State<StudyScreen> {
     });
 
     applyFilter();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   void applyFilter() {

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../app_navigation.dart';
 import '../models/word.dart';
 
 class ResultScreen extends StatelessWidget {
@@ -23,12 +24,16 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accuracy =
-        ((correctCount / totalQuestions) * 100).toStringAsFixed(1);
+    final accuracy = totalQuestions == 0
+        ? '0.0'
+        : ((correctCount / totalQuestions) * 100).toStringAsFixed(1);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Result'),
+        leading: BackButton(
+          onPressed: () => AppNavigation.popToHome(context),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -111,10 +116,7 @@ class ResultScreen extends StatelessWidget {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {
-                  // Stack after quiz: [Home, Result] (Quiz was pushReplacement'd).
-                  Navigator.of(context).pop();
-                },
+                onPressed: () => AppNavigation.popToHome(context),
                 child: const Text(
                   'Back to Home',
                   style: TextStyle(fontSize: 18),
