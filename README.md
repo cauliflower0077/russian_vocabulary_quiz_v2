@@ -1,16 +1,44 @@
 # russian_vocabulary_quiz
 
-A new Flutter project.
+Personal Russian vocabulary quiz (Flutter Web). Local JSON only — no server, no API keys.
 
-## Getting Started
+## Public URL (GitHub Pages)
 
-This project is a starting point for a Flutter application.
+`https://<username>.github.io/russian_vocabulary_quiz/`
 
-A few resources to get you started if this is your first Flutter project:
+## Build for GitHub Pages
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter pub get
+flutter build web --base-href=/russian_vocabulary_quiz/
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Copy output into `docs/` (see `scripts/build_github_pages.ps1`), then commit and push.
+
+## GitHub Pages settings
+
+1. Repository → **Settings** → **Pages**
+2. **Build and deployment** → Source: **Deploy from a branch**
+3. Branch: **main** / Folder: **/docs**
+4. Save
+
+`.nojekyll` in `docs/` is required (included by the script).
+
+## Local Web (development)
+
+```bash
+flutter run -d chrome --base-href=/
+```
+
+## Word data
+
+Edit JSON under `assets/data/`, then rebuild and redeploy.
+
+## Stack
+
+- Flutter / Dart (`StatefulWidget` + `setState`)
+- `flutter_tts` (device/browser TTS)
+- `shared_preferences` (missed / guessed IDs)
+- Assets: `assets/data/*.json`
+
+No Firebase, no paid APIs, no cloud sync.
