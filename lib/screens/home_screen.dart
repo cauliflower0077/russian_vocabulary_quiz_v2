@@ -1,5 +1,9 @@
+// lib/screens/home_screen.dart
 
 import 'package:flutter/material.dart';
+
+import '../services/word_service.dart';
+import 'quiz_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,8 +14,24 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int selectedQuestionCount = 10;
-
   bool russianToEnglish = true;
+
+  Future<void> startQuiz() async {
+    final words = await WordService.loadWords();
+
+    if (!mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizScreen(
+          words: words,
+          questionCount: selectedQuestionCount,
+          russianToEnglish: russianToEnglish,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const Text(
               'Question Count',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
-
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -49,17 +64,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }).toList(),
             ),
-
             const SizedBox(height: 32),
-
             const Text(
               'Mode',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-
             RadioListTile<bool>(
               contentPadding: EdgeInsets.zero,
               title: const Text('Russian → English'),
@@ -71,7 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
               },
             ),
-
             RadioListTile<bool>(
               contentPadding: EdgeInsets.zero,
               title: const Text('English → Russian'),
@@ -83,66 +91,39 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
               },
             ),
-
             const SizedBox(height: 32),
-
             SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {
-                  debugPrint(
-                    'Start Quiz: '
-                    '$selectedQuestionCount questions / '
-                    '${russianToEnglish ? "RU→EN" : "EN→RU"}',
-                  );
-
-                  // TODO:
-                  // Navigator.push(...)
-                  // QuizScreenへ接続
-                },
+                onPressed: startQuiz,
                 child: const Text(
                   'Start Quiz',
                   style: TextStyle(fontSize: 18),
                 ),
               ),
             ),
-
             const SizedBox(height: 24),
-
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {
-                  // TODO:
-                  // MissedScreenへ接続
-                },
+                onPressed: () {},
                 child: const Text('Missed Words'),
               ),
             ),
-
             const SizedBox(height: 12),
-
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {
-                  // TODO:
-                  // GuessedScreenへ接続
-                },
+                onPressed: () {},
                 child: const Text('Guess List'),
               ),
             ),
-
             const SizedBox(height: 12),
-
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {
-                  // TODO:
-                  // StudyScreenへ接続
-                },
+                onPressed: () {},
                 child: const Text('Study List'),
               ),
             ),
