@@ -1,0 +1,33 @@
+[
+{
+  "id": 607,
+  "ru": "картофель",
+  "ru_tts": "карто́фель",
+  "en": "potato",
+  "category": "food",
+  "tags": ["#食事"]
+},
+{
+  "id": 608,
+  "ru": "сыр",
+  "ru_tts": "сыр",
+  "en": "cheese",
+  "category": "food",
+  "tags": ["#食事"]
+},
+{
+  "id": 609,
+  "ru": "мясо",
+  "ru_tts": "мя́со",
+  "en": "meat",
+  "category": "food",
+  "tags": ["#食事"]
+},
+{
+    "id": 810,
+    "ru": "старший",
+    "ru_tts": "ста́рший",
+    "en": "senior",
+    "category": "misc",
+    "tags": ["#人間関係", "#A1"]
+  }]

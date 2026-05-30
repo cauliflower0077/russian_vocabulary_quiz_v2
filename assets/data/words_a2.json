@@ -1,0 +1,16 @@
+[{
+    "id": 603,
+    "ru": "хлеб",
+    "ru_tts": "хлеб",
+    "en": "bread",
+    "category": "food",
+    "tags": ["#食事", "#A1"]
+  },
+  {
+    "id": 604,
+    "ru": "рис",
+    "ru_tts": "рис",
+    "en": "rice",
+    "category": "food",
+    "tags": ["#食事"]
+  }]
