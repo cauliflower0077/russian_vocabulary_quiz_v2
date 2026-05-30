@@ -112,10 +112,8 @@ class ResultScreen extends StatelessWidget {
               height: 56,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.popUntil(
-                    context,
-                    (route) => route.isFirst,
-                  );
+                  // Stack after quiz: [Home, Result] (Quiz was pushReplacement'd).
+                  Navigator.of(context).pop();
                 },
                 child: const Text(
                   'Back to Home',

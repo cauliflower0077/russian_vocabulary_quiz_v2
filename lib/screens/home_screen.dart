@@ -1,9 +1,10 @@
-// lib/screens/home_screen.dart
 
 import 'package:flutter/material.dart';
 
 import '../services/word_service.dart';
 
+import 'guessed_screen.dart';
+import 'missed_screen.dart';
 import 'quiz_screen.dart';
 import 'study_screen.dart';
 
@@ -19,10 +20,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool russianToEnglish = true;
 
+  bool _isLoadingQuiz = false;
+
   Future<void> startQuiz() async {
+    if (_isLoadingQuiz) return;
+
+    setState(() {
+      _isLoadingQuiz = true;
+    });
+
     final words = await WordService.loadWords();
 
     if (!mounted) return;
+
+    setState(() {
+      _isLoadingQuiz = false;
+    });
+
+    if (words.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No words loaded. Check assets/data/*.json')),
+      );
+      return;
+    }
 
     Navigator.push(
       context,
@@ -41,6 +61,24 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => const StudyScreen(),
+      ),
+    );
+  }
+
+  void openMissedScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const MissedScreen(),
+      ),
+    );
+  }
+
+  void openGuessedScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const GuessedScreen(),
       ),
     );
   }
@@ -150,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 56,
 
               child: ElevatedButton(
-                onPressed: startQuiz,
+                onPressed: _isLoadingQuiz ? null : startQuiz,
 
                 child: const Text(
                   'Start Quiz',
@@ -168,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
 
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: openMissedScreen,
 
                 child: const Text(
                   'Missed Words',
@@ -182,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
 
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: openGuessedScreen,
 
                 child: const Text(
                   'Guess List',

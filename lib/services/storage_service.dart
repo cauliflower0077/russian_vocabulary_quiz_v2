@@ -8,12 +8,28 @@ class StorageService {
   // Missed Words
   // --------------------
 
+  static List<int> _parseIdList(List<String>? list) {
+    if (list == null || list.isEmpty) {
+      return [];
+    }
+
+    final ids = <int>[];
+    for (final value in list) {
+      final id = int.tryParse(value.trim());
+      if (id != null) {
+        ids.add(id);
+      }
+    }
+    return ids;
+  }
+
   static Future<List<int>> getMissedIds() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
 
-    final list = prefs.getStringList(missedKey) ?? [];
+    final list = prefs.getStringList(missedKey);
 
-    return list.map(int.parse).toList();
+    return _parseIdList(list);
   }
 
   static Future<void> addMissedId(int id) async {
@@ -43,10 +59,11 @@ class StorageService {
 
   static Future<List<int>> getGuessedIds() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
 
-    final list = prefs.getStringList(guessedKey) ?? [];
+    final list = prefs.getStringList(guessedKey);
 
-    return list.map(int.parse).toList();
+    return _parseIdList(list);
   }
 
   static Future<void> addGuessedId(int id) async {
