@@ -10,14 +10,22 @@ class TtsService {
     if (_initialized) return;
 
     try {
-      await _tts.setLanguage('ru-RU');
-
-      // 少し遅めの方が聞き取りやすい
-      await _tts.setSpeechRate(0.4);
+      if (kIsWeb) {
+        await _tts.setSpeechRate(0.4);
+        final langResult = await _tts.setLanguage('ru-RU');
+        if (langResult != 1) {
+          await _tts.setLanguage('ru');
+        }
+      } else {
+        await _tts.setLanguage('ru-RU');
+        await _tts.setSpeechRate(0.4);
+      }
 
       _initialized = true;
     } catch (e) {
       debugPrint('TTS init error: $e');
+      // Mark initialized so speak() does not retry init in a loop on Web.
+      _initialized = true;
     }
   }
 
@@ -29,7 +37,11 @@ class TtsService {
 
       await _tts.stop();
 
-      await _tts.speak(text);
+      final result = await _tts.speak(text);
+
+      if (kIsWeb && result != 1) {
+        debugPrint('TTS speak unavailable or silent on web (result: $result)');
+      }
     } catch (e) {
       debugPrint('TTS speak error: $e');
     }

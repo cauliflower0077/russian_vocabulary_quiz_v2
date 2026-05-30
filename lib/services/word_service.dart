@@ -18,8 +18,22 @@ class WordService {
     'assets/data/words_misc.json',
   ];
 
-  /// Discovers bundled JSON under [dataPrefix] (works on Web after pubspec lists [assets/data/]).
+  /// Discovers bundled JSON under [dataPrefix] (Web: AssetManifest.bin via API).
   static Future<List<String>> _resolveJsonPaths() async {
+    try {
+      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      final paths = manifest
+          .listAssets()
+          .where((key) => key.startsWith(dataPrefix) && key.endsWith('.json'))
+          .toList()
+        ..sort();
+      if (paths.isNotEmpty) {
+        return paths;
+      }
+    } catch (e) {
+      debugPrint('WordService: AssetManifest API failed ($e)');
+    }
+
     try {
       final manifestContent = await rootBundle.loadString('AssetManifest.json');
       final manifest = json.decode(manifestContent) as Map<String, dynamic>;
@@ -33,6 +47,7 @@ class WordService {
     } catch (e) {
       debugPrint('WordService: AssetManifest.json unavailable ($e)');
     }
+
     return fallbackJsonPaths;
   }
 
