@@ -1,5 +1,4 @@
 
-
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Russian Vocabulary Quiz'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [10, 20, 50, 100].map((count) {
                 return ChoiceChip(
                   label: Text('$count'),
@@ -61,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             RadioListTile<bool>(
+              contentPadding: EdgeInsets.zero,
               title: const Text('Russian → English'),
               value: true,
               groupValue: russianToEnglish,
@@ -72,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             RadioListTile<bool>(
+              contentPadding: EdgeInsets.zero,
               title: const Text('English → Russian'),
               value: false,
               groupValue: russianToEnglish,
@@ -90,8 +92,14 @@ class _HomeScreenState extends State<HomeScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   debugPrint(
-                    'Start Quiz: $selectedQuestionCount questions',
+                    'Start Quiz: '
+                    '$selectedQuestionCount questions / '
+                    '${russianToEnglish ? "RU→EN" : "EN→RU"}',
                   );
+
+                  // TODO:
+                  // Navigator.push(...)
+                  // QuizScreenへ接続
                 },
                 child: const Text(
                   'Start Quiz',
@@ -105,7 +113,10 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // TODO:
+                  // MissedScreenへ接続
+                },
                 child: const Text('Missed Words'),
               ),
             ),
@@ -115,7 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // TODO:
+                  // GuessedScreenへ接続
+                },
                 child: const Text('Guess List'),
               ),
             ),
@@ -125,7 +139,10 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // TODO:
+                  // StudyScreenへ接続
+                },
                 child: const Text('Study List'),
               ),
             ),
