@@ -1,11 +1,8 @@
-
 import 'package:flutter/material.dart';
-
-import '../services/word_service.dart';
 
 import 'guessed_screen.dart';
 import 'missed_screen.dart';
-import 'quiz_screen.dart';
+import 'quiz_mode_screen.dart';
 import 'study_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,35 +17,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool russianToEnglish = true;
 
-  bool _isLoadingQuiz = false;
-
-  Future<void> startQuiz() async {
-    if (_isLoadingQuiz) return;
-
-    setState(() {
-      _isLoadingQuiz = true;
-    });
-
-    final words = await WordService.loadWords();
-
-    if (!mounted) return;
-
-    setState(() {
-      _isLoadingQuiz = false;
-    });
-
-    if (words.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No words loaded. Check assets/data/*.json')),
-      );
-      return;
-    }
-
+  void startQuiz() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => QuizScreen(
-          words: words,
+        builder: (_) => QuizModeScreen(
           questionCount: selectedQuestionCount,
           russianToEnglish: russianToEnglish,
         ),
@@ -91,18 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
           'Russian Vocabulary Quiz',
         ),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-
         child: Column(
           crossAxisAlignment:
               CrossAxisAlignment.start,
-
           children: [
             const Text(
               'Question Count',
-
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -114,16 +83,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-
               children:
                   [10, 20, 50, 100].map((count) {
                 return ChoiceChip(
                   label: Text('$count'),
-
                   selected:
                       selectedQuestionCount ==
                           count,
-
                   onSelected: (_) {
                     setState(() {
                       selectedQuestionCount =
@@ -138,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const Text(
               'Mode',
-
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -147,15 +112,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
             RadioListTile<bool>(
               contentPadding: EdgeInsets.zero,
-
               title: const Text(
                 'Russian → English',
               ),
-
               value: true,
-
               groupValue: russianToEnglish,
-
               onChanged: (value) {
                 setState(() {
                   russianToEnglish = value!;
@@ -165,15 +126,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
             RadioListTile<bool>(
               contentPadding: EdgeInsets.zero,
-
               title: const Text(
                 'English → Russian',
               ),
-
               value: false,
-
               groupValue: russianToEnglish,
-
               onChanged: (value) {
                 setState(() {
                   russianToEnglish = value!;
@@ -186,13 +143,10 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: double.infinity,
               height: 56,
-
               child: ElevatedButton(
-                onPressed: _isLoadingQuiz ? null : startQuiz,
-
+                onPressed: startQuiz,
                 child: const Text(
                   'Start Quiz',
-
                   style: TextStyle(
                     fontSize: 18,
                   ),
@@ -204,10 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SizedBox(
               width: double.infinity,
-
               child: OutlinedButton(
                 onPressed: openMissedScreen,
-
                 child: const Text(
                   'Missed Words',
                 ),
@@ -218,10 +170,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SizedBox(
               width: double.infinity,
-
               child: OutlinedButton(
                 onPressed: openGuessedScreen,
-
                 child: const Text(
                   'Guess List',
                 ),
@@ -232,10 +182,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SizedBox(
               width: double.infinity,
-
               child: OutlinedButton(
                 onPressed: openStudyScreen,
-
                 child: const Text(
                   'Study List',
                 ),
