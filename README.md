@@ -6,7 +6,7 @@ Personal Russian vocabulary quiz (Flutter Web). Local JSON only — no server, n
 
 `https://<username>.github.io/russian_vocabulary_quiz/`
 
-## Build for GitHub Pages
+## Build for GitHub Pagesnyan
 
 ```bash
 flutter pub get
