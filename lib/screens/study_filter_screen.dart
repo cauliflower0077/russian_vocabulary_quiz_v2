@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../models/study_filter.dart';
+import 'study_screen.dart';
+
 class StudyFilterScreen extends StatefulWidget {
   const StudyFilterScreen({super.key});
 
@@ -31,11 +34,44 @@ class _StudyFilterScreenState
   }
 
   void openStudyList() {
-    // v0.3 次フェーズで実装
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'StudyScreen connection will be added later.',
+    late StudyFilter filter;
+
+    switch (selectedMode) {
+      case 0:
+        filter = StudyFilter.all();
+        break;
+
+      case 1:
+        filter = StudyFilter.range(
+          startId:
+              int.tryParse(startIdController.text) ??
+                  1,
+          endId:
+              int.tryParse(endIdController.text) ??
+                  100,
+        );
+        break;
+
+      case 2:
+        final tags = tagsController.text
+            .split(RegExp(r'\s+'))
+            .where((e) => e.trim().isNotEmpty)
+            .toList();
+
+        filter = StudyFilter.tags(
+          tags: tags,
+        );
+        break;
+
+      default:
+        filter = StudyFilter.all();
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StudyScreen(
+          filter: filter,
         ),
       ),
     );
@@ -51,7 +87,6 @@ class _StudyFilterScreenState
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-
         child: Column(
           children: [
             RadioListTile<int>(
