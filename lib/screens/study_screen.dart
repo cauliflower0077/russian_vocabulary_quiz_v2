@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../models/study_filter.dart';
 import '../models/word.dart';
 import '../services/tts_service.dart';
 import '../services/word_service.dart';
@@ -14,7 +15,12 @@ enum SortType {
 }
 
 class StudyScreen extends StatefulWidget {
-  const StudyScreen({super.key});
+  final StudyFilter filter;
+
+  const StudyScreen({
+    super.key,
+    required this.filter,
+  });
 
   @override
   State<StudyScreen> createState() =>
@@ -49,9 +55,28 @@ class _StudyScreenState
 
     if (!mounted) return;
 
+    List<Word> filtered = [...words];
+
+    if (widget.filter.isRange) {
+      filtered = filtered.where((word) {
+        return word.id >=
+                widget.filter.startId! &&
+            word.id <=
+                widget.filter.endId!;
+      }).toList();
+    }
+
+    if (widget.filter.isTags) {
+      filtered = filtered.where((word) {
+        return widget.filter.tags.every(
+          (tag) => word.tags.contains(tag),
+        );
+      }).toList();
+    }
+
     setState(() {
-      allWords = words;
-      filteredWords = [...words];
+      allWords = filtered;
+      filteredWords = [...filtered];
       isLoading = false;
     });
 
@@ -151,7 +176,6 @@ class _StudyScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('Study List'),
-
         actions: [
           IconButton(
             onPressed: () {
@@ -166,7 +190,6 @@ class _StudyScreenState
           ),
         ],
       ),
-
       body: isLoading
           ? const Center(
               child:
@@ -177,25 +200,20 @@ class _StudyScreenState
                 Padding(
                   padding:
                       const EdgeInsets.all(16),
-
                   child: Column(
                     children: [
                       TextField(
                         controller:
                             searchController,
-
                         decoration:
                             const InputDecoration(
                           hintText:
                               'Search words or tags',
-
                           prefixIcon:
                               Icon(Icons.search),
-
                           border:
                               OutlineInputBorder(),
                         ),
-
                         onChanged: (_) {
                           applyFilter();
                         },
@@ -208,25 +226,21 @@ class _StudyScreenState
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-
                         children: [
                           buildSortButton(
                             text: 'ID',
                             type: SortType.id,
                           ),
-
                           buildSortButton(
                             text: 'Russian',
                             type:
                                 SortType.russian,
                           ),
-
                           buildSortButton(
                             text: 'English',
                             type:
                                 SortType.english,
                           ),
-
                           buildSortButton(
                             text: 'Random',
                             type:
@@ -242,7 +256,6 @@ class _StudyScreenState
                   child: ListView.builder(
                     itemCount:
                         filteredWords.length,
-
                     itemBuilder:
                         (context, index) {
                       final word =
@@ -254,7 +267,6 @@ class _StudyScreenState
                           horizontal: 12,
                           vertical: 6,
                         ),
-
                         child: ListTile(
                           title: Row(
                             children: [
@@ -263,7 +275,6 @@ class _StudyScreenState
                                   russianToEnglish
                                       ? word.ru
                                       : word.en,
-
                                   style:
                                       const TextStyle(
                                     fontSize: 18,
@@ -283,11 +294,9 @@ class _StudyScreenState
                                   russianToEnglish
                                       ? word.en
                                       : word.ru,
-
                                   textAlign:
                                       TextAlign
                                           .right,
-
                                   style:
                                       const TextStyle(
                                     fontSize: 18,
@@ -304,7 +313,6 @@ class _StudyScreenState
                             crossAxisAlignment:
                                 CrossAxisAlignment
                                     .start,
-
                             children: [
                               const SizedBox(
                                 height: 8,
@@ -330,7 +338,6 @@ class _StudyScreenState
                             icon: const Icon(
                               Icons.volume_up,
                             ),
-
                             onPressed: () async {
                               await TtsService
                                   .speak(
