@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'guessed_screen.dart';
 import 'missed_screen.dart';
 import 'quiz_mode_screen.dart';
-import 'study_screen.dart';
+import 'study_filter_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() =>
+      _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -33,7 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const StudyScreen(),
+        builder: (_) =>
+            const StudyFilterScreen(),
       ),
     );
   }
