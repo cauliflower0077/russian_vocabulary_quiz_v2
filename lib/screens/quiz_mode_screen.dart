@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../models/quiz_mode.dart';
+import '../screens/quiz_screen.dart';
+import '../services/storage_service.dart';
+import '../services/word_service.dart';
 
 class QuizModeScreen extends StatefulWidget {
   final int questionCount;
@@ -22,6 +25,8 @@ class _QuizModeScreenState
   QuizModeType selectedMode =
       QuizModeType.range;
 
+  bool isLoading = false;
+
   final TextEditingController startIdController =
       TextEditingController(text: '1');
 
@@ -40,7 +45,13 @@ class _QuizModeScreenState
     super.dispose();
   }
 
-  void startQuiz() {
+  Future<void> startQuiz() async {
+    if (isLoading) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
     QuizMode quizMode;
 
     switch (selectedMode) {
@@ -75,13 +86,73 @@ class _QuizModeScreenState
         break;
     }
 
-    // 次回 QuizScreen 接続予定
-    debugPrint(quizMode.toString());
+    final words = await WordService.loadWords();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'QuizScreen connection will be added later.',
+    if (!mounted) return;
+
+    if (words.isEmpty) {
+      setState(() {
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No words loaded'),
+        ),
+      );
+
+      return;
+    }
+
+    // Missed / Guessed モード時に出題対象を絞る
+    List filteredWords = words;
+
+    if (quizMode.isMissed) {
+      final missedIds =
+          await StorageService.getMissedIds();
+
+      filteredWords = words
+          .where(
+            (word) => missedIds.contains(word.id),
+          )
+          .toList();
+    }
+
+    if (quizMode.isGuessed) {
+      final guessedIds =
+          await StorageService.getGuessedIds();
+
+      filteredWords = words
+          .where(
+            (word) => guessedIds.contains(word.id),
+          )
+          .toList();
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (filteredWords.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('No matching words found'),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizScreen(
+          words: filteredWords.cast(),
+          questionCount:
+              widget.questionCount,
+          russianToEnglish:
+              widget.russianToEnglish,
+          quizMode: quizMode,
         ),
       ),
     );
@@ -98,9 +169,8 @@ class _QuizModeScreenState
         child: Column(
           children: [
             RadioListTile(
-              title: const Text(
-                'Range Mode',
-              ),
+              title:
+                  const Text('Range Mode'),
               value: QuizModeType.range,
               groupValue: selectedMode,
               onChanged: (value) {
@@ -115,7 +185,8 @@ class _QuizModeScreenState
               Column(
                 children: [
                   TextField(
-                    controller: startIdController,
+                    controller:
+                        startIdController,
                     keyboardType:
                         TextInputType.number,
                     decoration:
@@ -124,7 +195,8 @@ class _QuizModeScreenState
                     ),
                   ),
                   TextField(
-                    controller: endIdController,
+                    controller:
+                        endIdController,
                     keyboardType:
                         TextInputType.number,
                     decoration:
@@ -138,9 +210,8 @@ class _QuizModeScreenState
             const SizedBox(height: 16),
 
             RadioListTile(
-              title: const Text(
-                'Tags Mode',
-              ),
+              title:
+                  const Text('Tags Mode'),
               value: QuizModeType.tags,
               groupValue: selectedMode,
               onChanged: (value) {
@@ -192,9 +263,12 @@ class _QuizModeScreenState
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: startQuiz,
-                child: const Text(
-                  'Start Quiz',
+                onPressed:
+                    isLoading ? null : startQuiz,
+                child: Text(
+                  isLoading
+                      ? 'Loading...'
+                      : 'Start Quiz',
                 ),
               ),
             ),
