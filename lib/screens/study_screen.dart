@@ -10,16 +10,19 @@ enum SortType {
   id,
   russian,
   english,
+  random,
 }
 
 class StudyScreen extends StatefulWidget {
   const StudyScreen({super.key});
 
   @override
-  State<StudyScreen> createState() => _StudyScreenState();
+  State<StudyScreen> createState() =>
+      _StudyScreenState();
 }
 
-class _StudyScreenState extends State<StudyScreen> {
+class _StudyScreenState
+    extends State<StudyScreen> {
   final TextEditingController searchController =
       TextEditingController();
 
@@ -41,7 +44,8 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   Future<void> loadWords() async {
-    final words = await WordService.loadWords();
+    final words =
+        await WordService.loadWords();
 
     if (!mounted) return;
 
@@ -57,12 +61,15 @@ class _StudyScreenState extends State<StudyScreen> {
   @override
   void dispose() {
     searchController.dispose();
+
     super.dispose();
   }
 
   void applyFilter() {
     final query =
-        searchController.text.trim().toLowerCase();
+        searchController.text
+            .trim()
+            .toLowerCase();
 
     List<Word> result = [...allWords];
 
@@ -91,20 +98,27 @@ class _StudyScreenState extends State<StudyScreen> {
     switch (sortType) {
       case SortType.id:
         result.sort(
-          (a, b) => a.id.compareTo(b.id),
+          (a, b) =>
+              a.id.compareTo(b.id),
         );
         break;
 
       case SortType.russian:
         result.sort(
-          (a, b) => a.ru.compareTo(b.ru),
+          (a, b) =>
+              a.ru.compareTo(b.ru),
         );
         break;
 
       case SortType.english:
         result.sort(
-          (a, b) => a.en.compareTo(b.en),
+          (a, b) =>
+              a.en.compareTo(b.en),
         );
+        break;
+
+      case SortType.random:
+        result.shuffle();
         break;
     }
 
@@ -137,6 +151,7 @@ class _StudyScreenState extends State<StudyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Study List'),
+
         actions: [
           IconButton(
             onPressed: () {
@@ -145,41 +160,55 @@ class _StudyScreenState extends State<StudyScreen> {
                     !russianToEnglish;
               });
             },
-            icon: const Icon(Icons.swap_horiz),
+            icon: const Icon(
+              Icons.swap_horiz,
+            ),
           ),
         ],
       ),
+
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(),
+              child:
+                  CircularProgressIndicator(),
             )
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding:
+                      const EdgeInsets.all(16),
+
                   child: Column(
                     children: [
                       TextField(
-                        controller: searchController,
+                        controller:
+                            searchController,
+
                         decoration:
                             const InputDecoration(
                           hintText:
                               'Search words or tags',
+
                           prefixIcon:
                               Icon(Icons.search),
+
                           border:
                               OutlineInputBorder(),
                         ),
+
                         onChanged: (_) {
                           applyFilter();
                         },
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(
+                        height: 12,
+                      ),
 
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
+
                         children: [
                           buildSortButton(
                             text: 'ID',
@@ -188,12 +217,20 @@ class _StudyScreenState extends State<StudyScreen> {
 
                           buildSortButton(
                             text: 'Russian',
-                            type: SortType.russian,
+                            type:
+                                SortType.russian,
                           ),
 
                           buildSortButton(
                             text: 'English',
-                            type: SortType.english,
+                            type:
+                                SortType.english,
+                          ),
+
+                          buildSortButton(
+                            text: 'Random',
+                            type:
+                                SortType.random,
                           ),
                         ],
                       ),
@@ -205,6 +242,7 @@ class _StudyScreenState extends State<StudyScreen> {
                   child: ListView.builder(
                     itemCount:
                         filteredWords.length,
+
                     itemBuilder:
                         (context, index) {
                       final word =
@@ -216,6 +254,7 @@ class _StudyScreenState extends State<StudyScreen> {
                           horizontal: 12,
                           vertical: 6,
                         ),
+
                         child: ListTile(
                           title: Row(
                             children: [
@@ -224,22 +263,37 @@ class _StudyScreenState extends State<StudyScreen> {
                                   russianToEnglish
                                       ? word.ru
                                       : word.en,
-                                  style: const TextStyle(
+
+                                  style:
+                                      const TextStyle(
                                     fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight:
+                                        FontWeight
+                                            .bold,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 16),
+
+                              const SizedBox(
+                                width: 16,
+                              ),
+
                               Expanded(
                                 child: Text(
                                   russianToEnglish
                                       ? word.en
                                       : word.ru,
-                                  textAlign: TextAlign.right,
-                                  style: const TextStyle(
+
+                                  textAlign:
+                                      TextAlign
+                                          .right,
+
+                                  style:
+                                      const TextStyle(
                                     fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight:
+                                        FontWeight
+                                            .bold,
                                   ),
                                 ),
                               ),
@@ -250,6 +304,7 @@ class _StudyScreenState extends State<StudyScreen> {
                             crossAxisAlignment:
                                 CrossAxisAlignment
                                     .start,
+
                             children: [
                               const SizedBox(
                                 height: 8,
@@ -275,6 +330,7 @@ class _StudyScreenState extends State<StudyScreen> {
                             icon: const Icon(
                               Icons.volume_up,
                             ),
+
                             onPressed: () async {
                               await TtsService
                                   .speak(
