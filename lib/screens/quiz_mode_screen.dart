@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/quiz_mode.dart';
 import '../screens/quiz_screen.dart';
-import '../services/storage_service.dart';
 import '../services/word_service.dart';
 
 class QuizModeScreen extends StatefulWidget {
@@ -86,60 +85,25 @@ class _QuizModeScreenState
         break;
     }
 
-    final words = await WordService.loadWords();
+    final words =
+        await WordService.loadWords();
 
     if (!mounted) return;
-
-    if (words.isEmpty) {
-      setState(() {
-        isLoading = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No words loaded'),
-        ),
-      );
-
-      return;
-    }
-
-    // Missed / Guessed モード時に出題対象を絞る
-    List filteredWords = words;
-
-    if (quizMode.isMissed) {
-      final missedIds =
-          await StorageService.getMissedIds();
-
-      filteredWords = words
-          .where(
-            (word) => missedIds.contains(word.id),
-          )
-          .toList();
-    }
-
-    if (quizMode.isGuessed) {
-      final guessedIds =
-          await StorageService.getGuessedIds();
-
-      filteredWords = words
-          .where(
-            (word) => guessedIds.contains(word.id),
-          )
-          .toList();
-    }
 
     setState(() {
       isLoading = false;
     });
 
-    if (filteredWords.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    if (words.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         const SnackBar(
-          content:
-              Text('No matching words found'),
+          content: Text(
+            'No words loaded.',
+          ),
         ),
       );
+
       return;
     }
 
@@ -147,7 +111,7 @@ class _QuizModeScreenState
       context,
       MaterialPageRoute(
         builder: (_) => QuizScreen(
-          words: filteredWords.cast(),
+          words: words,
           questionCount:
               widget.questionCount,
           russianToEnglish:
@@ -194,6 +158,9 @@ class _QuizModeScreenState
                       labelText: 'Start ID',
                     ),
                   ),
+
+                  const SizedBox(height: 8),
+
                   TextField(
                     controller:
                         endIdController,
@@ -229,6 +196,8 @@ class _QuizModeScreenState
                     const InputDecoration(
                   labelText:
                       '#A1 #動詞 #IT',
+                  hintText:
+                      '#A1 #コロケーション',
                 ),
               ),
 
@@ -262,6 +231,7 @@ class _QuizModeScreenState
 
             SizedBox(
               width: double.infinity,
+              height: 56,
               child: ElevatedButton(
                 onPressed:
                     isLoading ? null : startQuiz,
