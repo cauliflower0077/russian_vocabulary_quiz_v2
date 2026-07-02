@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/word.dart';
+import '../services/json_export_service.dart';
 import '../services/storage_service.dart';
 import '../services/tts_service.dart';
 import '../services/word_service.dart';
@@ -59,12 +60,12 @@ class _MissedScreenState
 
       if (!mounted) return;
 
-      missedWords = words;
-      missedCounts = counts;
-
-      applySort();
-
       setState(() {
+        missedWords = words;
+        missedCounts = counts;
+
+        applySort();
+
         isLoading = false;
       });
 
@@ -123,6 +124,73 @@ class _MissedScreenState
         break;
     }
   }
+
+  Future<void> exportJson() async {
+    final minimumCount =
+        await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title:
+              const Text('Minimum Count'),
+          children: [
+            for (final value
+                in [1, 2, 3, 5, 10])
+              SimpleDialogOption(
+                onPressed: () {
+                  Navigator.pop(
+                    context,
+                    value,
+                  );
+                },
+                child: Text('$value+'),
+              ),
+          ],
+        );
+      },
+    );
+
+    if (minimumCount == null) return;
+
+    final json =
+        JsonExportService.exportWords(
+      words: missedWords,
+      counts: missedCounts,
+      minimumCount: minimumCount,
+    );
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Missed JSON ($minimumCount+)',
+          ),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: SelectableText(
+                json,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Close',
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget buildSortButton({
     required String text,
     required MissedSortType type,
@@ -138,12 +206,19 @@ class _MissedScreenState
       },
     );
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Missed Words'),
+        actions: [
+          IconButton(
+            onPressed: exportJson,
+            icon: const Icon(Icons.download),
+            tooltip: 'Export JSON',
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(
@@ -156,43 +231,35 @@ class _MissedScreenState
               : Column(
                   children: [
                     Padding(
-                      padding:
-                          const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(12),
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
                           buildSortButton(
                             text: 'Count',
-                            type:
-                                MissedSortType.count,
+                            type: MissedSortType.count,
                           ),
                           buildSortButton(
                             text: 'Russian',
-                            type: MissedSortType
-                                .russian,
+                            type: MissedSortType.russian,
                           ),
                           buildSortButton(
                             text: 'English',
-                            type: MissedSortType
-                                .english,
+                            type: MissedSortType.english,
                           ),
                           buildSortButton(
                             text: 'Random',
-                            type:
-                                MissedSortType.random,
+                            type: MissedSortType.random,
                           ),
                         ],
                       ),
                     ),
                     Expanded(
                       child: ListView.builder(
-                        itemCount:
-                            missedWords.length,
-                        itemBuilder:
-                            (context, index) {
-                          final word =
-                              missedWords[index];
+                        itemCount: missedWords.length,
+                        itemBuilder: (context, index) {
+                          final word = missedWords[index];
 
                           return Card(
                             margin:
@@ -210,25 +277,21 @@ class _MissedScreenState
                                           const TextStyle(
                                         fontSize: 18,
                                         fontWeight:
-                                            FontWeight
-                                                .bold,
+                                            FontWeight.bold,
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(
-                                      width: 16),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                     child: Text(
                                       word.en,
                                       textAlign:
-                                          TextAlign
-                                              .right,
+                                          TextAlign.right,
                                       style:
                                           const TextStyle(
                                         fontSize: 18,
                                         fontWeight:
-                                            FontWeight
-                                                .bold,
+                                            FontWeight.bold,
                                       ),
                                     ),
                                   ),
@@ -240,23 +303,24 @@ class _MissedScreenState
                                         .start,
                                 children: [
                                   const SizedBox(
-                                      height: 8),
+                                    height: 8,
+                                  ),
                                   Text(word.ruTts),
                                   const SizedBox(
-                                      height: 4),
+                                    height: 4,
+                                  ),
                                   Text(
-                                    word.tags.join(
-                                        ' '),
+                                    word.tags.join(' '),
                                   ),
                                   const SizedBox(
-                                      height: 4),
+                                    height: 4,
+                                  ),
                                   Text(
                                     'Missed: ${missedCounts[word.id] ?? 0}',
                                     style:
                                         const TextStyle(
                                       fontWeight:
-                                          FontWeight
-                                              .bold,
+                                          FontWeight.bold,
                                     ),
                                   ),
                                 ],
@@ -265,8 +329,7 @@ class _MissedScreenState
                                 icon: const Icon(
                                   Icons.volume_up,
                                 ),
-                                onPressed:
-                                    () async {
+                                onPressed: () async {
                                   await TtsService
                                       .speak(
                                     word.ruTts,
