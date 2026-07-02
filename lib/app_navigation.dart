@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'models/quiz_mode.dart';
+import 'models/study_filter.dart';
 import 'models/word.dart';
+
 import 'screens/guessed_screen.dart';
 import 'screens/missed_screen.dart';
 import 'screens/quiz_screen.dart';
@@ -10,17 +13,21 @@ import 'screens/study_screen.dart';
 /// Local-only navigation (no named routes / no external APIs).
 ///
 /// Stack conventions:
-/// - [HomeScreen] is always `MaterialApp.home` (first route).
-/// - Quiz: `Home` --push--> `Quiz`
-/// - Result: `Home` --push--> `Quiz` --pushReplacement--> `Result`  =>  [Home, Result]
-/// - Back from Result: `pop()` once => `Home`
-/// - Study / Missed / Guessed: `Home` --push--> screen --pop--> `Home`
+/// - HomeScreen is MaterialApp.home
+/// - Quiz: Home -> Quiz
+/// - Result: Home -> Result (pushReplacement)
+/// - Study / Missed / Guessed: Home -> Screen -> Home
 class AppNavigation {
   AppNavigation._();
 
-  static Future<T?> push<T>(BuildContext context, Widget screen) {
+  static Future<T?> push<T>(
+    BuildContext context,
+    Widget screen,
+  ) {
     return Navigator.of(context).push<T>(
-      MaterialPageRoute<T>(builder: (_) => screen),
+      MaterialPageRoute<T>(
+        builder: (_) => screen,
+      ),
     );
   }
 
@@ -30,7 +37,8 @@ class AppNavigation {
     required int questionCount,
     required bool russianToEnglish,
   }) {
-    final safeCount = questionCount.clamp(1, words.length);
+    final safeCount =
+        questionCount.clamp(1, words.length);
 
     return push<void>(
       context,
@@ -38,20 +46,43 @@ class AppNavigation {
         words: words,
         questionCount: safeCount,
         russianToEnglish: russianToEnglish,
+
+        // デフォルト（全範囲）
+        quizMode: QuizMode.range(
+          startId: 1,
+          endId: 999999,
+        ),
       ),
     );
   }
 
-  static Future<void> pushStudy(BuildContext context) {
-    return push<void>(context, const StudyScreen());
+  static Future<void> pushStudy(
+    BuildContext context,
+  ) {
+    return push<void>(
+      context,
+      StudyScreen(
+        filter: StudyFilter.all(),
+      ),
+    );
   }
 
-  static Future<void> pushMissed(BuildContext context) {
-    return push<void>(context, const MissedScreen());
+  static Future<void> pushMissed(
+    BuildContext context,
+  ) {
+    return push<void>(
+      context,
+      const MissedScreen(),
+    );
   }
 
-  static Future<void> pushGuessed(BuildContext context) {
-    return push<void>(context, const GuessedScreen());
+  static Future<void> pushGuessed(
+    BuildContext context,
+  ) {
+    return push<void>(
+      context,
+      const GuessedScreen(),
+    );
   }
 
   static void replaceWithResult(
@@ -73,8 +104,9 @@ class AppNavigation {
     );
   }
 
-  /// Pops [ResultScreen] back to [HomeScreen] when stack is [Home, Result].
-  static void popToHome(BuildContext context) {
+  static void popToHome(
+    BuildContext context,
+  ) {
     Navigator.of(context).pop();
   }
 }
