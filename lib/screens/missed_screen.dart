@@ -1,11 +1,16 @@
-// lib/screens/missed_screen.dart
-
 import 'package:flutter/material.dart';
 
 import '../models/word.dart';
 import '../services/storage_service.dart';
 import '../services/tts_service.dart';
 import '../services/word_service.dart';
+
+enum MissedSortType {
+  count,
+  russian,
+  english,
+  random,
+}
 
 class MissedScreen extends StatefulWidget {
   const MissedScreen({super.key});
@@ -19,7 +24,12 @@ class _MissedScreenState
     extends State<MissedScreen> {
   List<Word> missedWords = [];
 
+  Map<int, int> missedCounts = {};
+
   bool isLoading = true;
+
+  MissedSortType sortType =
+      MissedSortType.count;
 
   @override
   void initState() {
@@ -30,18 +40,31 @@ class _MissedScreenState
 
   Future<void> loadMissedWords() async {
     try {
-      final ids = await StorageService.getMissedIds();
-      final allWords = await WordService.loadWords();
+      final ids =
+          await StorageService.getMissedIds();
+
+      final counts =
+          await StorageService.getMissedCounts();
+
+      final allWords =
+          await WordService.loadWords();
+
       final idSet = ids.toSet();
 
       final words = allWords
-          .where((word) => idSet.contains(word.id))
+          .where(
+            (word) => idSet.contains(word.id),
+          )
           .toList();
 
       if (!mounted) return;
 
+      missedWords = words;
+      missedCounts = counts;
+
+      applySort();
+
       setState(() {
-        missedWords = words;
         isLoading = false;
       });
 
@@ -49,18 +72,71 @@ class _MissedScreenState
         'MissedScreen: ${ids.length} ids, ${words.length} words shown',
       );
     } catch (e, st) {
-      debugPrint('MissedScreen load failed: $e\n$st');
+      debugPrint(
+        'MissedScreen load failed: $e\n$st',
+      );
+
       if (!mounted) return;
 
       setState(() {
         missedWords = [];
+        missedCounts = {};
         isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load missed words: $e')),
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to load missed words: $e',
+          ),
+        ),
       );
     }
+  }
+
+  void applySort() {
+    switch (sortType) {
+      case MissedSortType.count:
+        missedWords.sort((a, b) {
+          return (missedCounts[b.id] ?? 0)
+              .compareTo(
+            missedCounts[a.id] ?? 0,
+          );
+        });
+        break;
+
+      case MissedSortType.russian:
+        missedWords.sort(
+          (a, b) => a.ru.compareTo(b.ru),
+        );
+        break;
+
+      case MissedSortType.english:
+        missedWords.sort(
+          (a, b) => a.en.compareTo(b.en),
+        );
+        break;
+
+      case MissedSortType.random:
+        missedWords.shuffle();
+        break;
+    }
+  }
+  Widget buildSortButton({
+    required String text,
+    required MissedSortType type,
+  }) {
+    return ChoiceChip(
+      label: Text(text),
+      selected: sortType == type,
+      onSelected: (_) {
+        setState(() {
+          sortType = type;
+          applySort();
+        });
+      },
+    );
   }
 
   @override
@@ -69,114 +145,140 @@ class _MissedScreenState
       appBar: AppBar(
         title: const Text('Missed Words'),
       ),
-
       body: isLoading
           ? const Center(
-              child:
-                  CircularProgressIndicator(),
+              child: CircularProgressIndicator(),
             )
           : missedWords.isEmpty
               ? const Center(
-                  child:
-                      Text('No missed words'),
+                  child: Text('No missed words'),
                 )
-              : ListView.builder(
-                  itemCount:
-                      missedWords.length,
-
-                  itemBuilder:
-                      (context, index) {
-                    final word =
-                        missedWords[index];
-
-                    return Card(
-                      margin:
-                          const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-
-                      child: ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                word.ru,
-
-                                style:
-                                    const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight:
-                                      FontWeight
-                                          .bold,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(
-                              width: 16,
-                            ),
-
-                            Expanded(
-                              child: Text(
-                                word.en,
-
-                                textAlign:
-                                    TextAlign
-                                        .right,
-
-                                style:
-                                    const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight:
-                                      FontWeight
-                                          .bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        subtitle: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-
-                          children: [
-                            const SizedBox(
-                              height: 8,
-                            ),
-
-                            Text(word.ruTts),
-
-                            const SizedBox(
-                              height: 4,
-                            ),
-
-                            Text(
-                              word.tags.join(
-                                ' ',
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        trailing: IconButton(
-                          icon: const Icon(
-                            Icons.volume_up,
+              : Column(
+                  children: [
+                    Padding(
+                      padding:
+                          const EdgeInsets.all(12),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          buildSortButton(
+                            text: 'Count',
+                            type:
+                                MissedSortType.count,
                           ),
-
-                          onPressed:
-                              () async {
-                            await TtsService
-                                .speak(
-                              word.ruTts,
-                            );
-                          },
-                        ),
+                          buildSortButton(
+                            text: 'Russian',
+                            type: MissedSortType
+                                .russian,
+                          ),
+                          buildSortButton(
+                            text: 'English',
+                            type: MissedSortType
+                                .english,
+                          ),
+                          buildSortButton(
+                            text: 'Random',
+                            type:
+                                MissedSortType.random,
+                          ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount:
+                            missedWords.length,
+                        itemBuilder:
+                            (context, index) {
+                          final word =
+                              missedWords[index];
+
+                          return Card(
+                            margin:
+                                const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            child: ListTile(
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      word.ru,
+                                      style:
+                                          const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight:
+                                            FontWeight
+                                                .bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      word.en,
+                                      textAlign:
+                                          TextAlign
+                                              .right,
+                                      style:
+                                          const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight:
+                                            FontWeight
+                                                .bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .start,
+                                children: [
+                                  const SizedBox(
+                                      height: 8),
+                                  Text(word.ruTts),
+                                  const SizedBox(
+                                      height: 4),
+                                  Text(
+                                    word.tags.join(
+                                        ' '),
+                                  ),
+                                  const SizedBox(
+                                      height: 4),
+                                  Text(
+                                    'Missed: ${missedCounts[word.id] ?? 0}',
+                                    style:
+                                        const TextStyle(
+                                      fontWeight:
+                                          FontWeight
+                                              .bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.volume_up,
+                                ),
+                                onPressed:
+                                    () async {
+                                  await TtsService
+                                      .speak(
+                                    word.ruTts,
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
     );
   }
